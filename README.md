@@ -1,5 +1,5 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.1-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.2-E5A505?style=flat-square&color=green)]()
 
 Authored by: **Tim Blazytko**
 
@@ -34,7 +34,7 @@ For more details on `partial_heur()` and `all_heur()`:
 
 `all_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of all functions within the binary.
 
-`partial_heur()` calls both cyclomatic complexity and basic block size heuristic functions on the binary, then prints an output of the heuristics of the top 10% functions within the binary.
+`partial_heur()` calls cyclomatic complexity, basic block size and instruction overlapping heuristic functions on the binary, then prints an output of the heuristics of the top 10% functions within the binary.
 
 Since the script uses the IDA API, any functions that are missed by IDA will likely not be detected.
 
@@ -61,4 +61,3 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 ## Todo
 
 - Optimize flow flattening algorithm (Any help is welcomed)
-- Instruction Overlapping heuristic

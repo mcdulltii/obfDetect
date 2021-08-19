@@ -71,43 +71,46 @@ def find_large_basic_blocks(partial=True):
 
 
 def find_instruction_overlapping():
-    # print("=" * 80)
-    # print("Instruction Overlapping")
+    print("=" * 80)
+    print("Instruction Overlapping")
 
-    # # set of addresses
-    # seen = {}
+    # Highlight color
+    def color_insn(ea, color = 0xFFFF00):
+        current_color = get_item_color(ea)
+        if current_color == color:
+            set_item_color(ea, DEFCOLOR)
+        elif current_color == DEFCOLOR:
+            set_item_color(ea, color)
 
-    # functions_with_overlapping = set()
+    # set of addresses
+    seen = {}
+    functions_with_overlapping = set()
 
-    # # walk over all functions
-    # for function in bv.functions:
-    #     # walk over all instructions
-    #     for instruction in function.instructions:
-    #         # parse address
-    #         address = instruction[-1]
-
-    #         # seen for the first time
-    #         if address not in seen:
-    #             # mark as instruction beginning
-    #             seen[address] = 1
-    #         # seen before and not marked as instruction beginning
-    #         elif seen[address] == 0:
-    #             functions_with_overlapping.add(function.start)
-    #             function.set_user_instr_highlight(
-    #                 address, highlight.HighlightColor(red=0xff, blue=0xff, green=0))
-
-    #         # walk over instruction length and mark bytes as seen
-    #         for _ in range(1, bv.get_instruction_length(address)):
-    #             address += 1
-    #             # if seen before and marked as instruction beginning
-    #             if address in seen and seen[address] == 1:
-    #                 functions_with_overlapping.add(function.start)
-    #                 function.set_user_instr_highlight(
-    #                     address, highlight.HighlightColor(red=0xff, blue=0xff, green=0))
-    #             else:
-    #                 seen[address] = 0
-
-    # for address in sorted(functions_with_overlapping):
-    #     print(
-    #         f"Overlapping instructions in function {hex(address)} ({bv.get_function_at(address).name}).")
-    return
+    # walk over all functions
+    for ea in Functions():
+        # walk over all instructions
+        for (startea, endea) in Chunks(ea):
+            for address in Heads(startea, endea):
+                # seen for the first time
+                if address not in seen:
+                    # mark as instruction beginning
+                    seen[address] = 1
+                # seen before and not marked as instruction beginning
+                elif seen[address] == 0:
+                    functions_with_overlapping.add(startea)
+                    color_insn(address)
+                # walk over instruction length and mark bytes as seen
+                insn = insn_t()
+                for _ in range(1, decode_insn(insn, address)):
+                    address += 1
+                    # if seen before and marked as instruction beginning
+                    if address in seen and seen[address] == 1:
+                        functions_with_overlapping.add(startea)
+                        color_insn(address)
+                    else:
+                        seen[address] = 0
+    if len(functions_with_overlapping) > 0:
+        for address in sorted(functions_with_overlapping):
+            print(f"Overlapping instructions in function {hex(address)} ({get_func_name(address)}).")
+    else:
+        print("No overlapping instructions found in binary.")
