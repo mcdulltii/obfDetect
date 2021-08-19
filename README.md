@@ -1,5 +1,5 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.2-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.3-E5A505?style=flat-square&color=green)]()
 
 Authored by: **Tim Blazytko**
 
@@ -19,15 +19,19 @@ Implementation is based on IDA 7.4+ (Python3). Check out the following blog post
 
 ## Note:
 
-Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive. As such, the flattening heuristic is omitted when the binary loaded has more than 50 functions. Functions will be skipped if the ctree structure is too large to prevent crashes.
+Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive. As such, the flattening heuristic is omitted when the binary loaded has more than 50 functions. Functions will be skipped if the ctree structure is too large (more than 50 nodes) to prevent crashes.
 
 ```Python
 MAX_FUNCTIONS = 50
+MAX_NODES = 50
 # --- snipped ---
-if sum([1 for i in idautils.Functions()]) > MAX_FUNCTIONS:
+if sum([1 for _ in idautils.Functions()]) > MAX_FUNCTIONS:
     detect.partial_heur()
 else:
     detect.all_heur()
+# --- snipped ---
+if sum([1 for _ in FlowChart(get_func(ea))]) > MAX_NODES:
+    pass
 ```
 
 For more details on `partial_heur()` and `all_heur()`:
@@ -35,6 +39,8 @@ For more details on `partial_heur()` and `all_heur()`:
 `all_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of all functions within the binary.
 
 `partial_heur()` calls cyclomatic complexity, basic block size and instruction overlapping heuristic functions on the binary, then prints an output of the heuristics of the top 10% functions within the binary.
+
+Instruction overlapping heuristic algorithm makes use of [mcsema disassembly code](https://github.com/lifting-bits/mcsema) to follow jmp and call instructions for better coverage.
 
 Since the script uses the IDA API, any functions that are missed by IDA will likely not be detected.
 
@@ -57,6 +63,10 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 - Resilience test using a large binary obfuscated using O-LLVM
 
 ![partial_heur](img/partial_heuristic.png)
+
+- Instruction overlapping heuristic detection
+
+![instruction overlap](img/insn_overlap.png)
 
 ## Todo
 
