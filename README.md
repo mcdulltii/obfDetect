@@ -1,5 +1,5 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.0-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.1-E5A505?style=flat-square&color=green)]()
 
 Authored by: **Tim Blazytko**
 
@@ -19,7 +19,7 @@ Implementation is based on IDA 7.4+ (Python3). Check out the following blog post
 
 ## Note:
 
-Due to the recursive nature of plotting a dominator tree of every found function within the binary, the flattening heuristic is omitted when the binary loaded has more than 50 functions.
+Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive. As such, the flattening heuristic is omitted when the binary loaded has more than 50 functions. Functions will be skipped if the ctree structure is too large to prevent crashes.
 
 ```Python
 MAX_FUNCTIONS = 50
@@ -57,3 +57,8 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 - Resilience test using a large binary obfuscated using O-LLVM
 
 ![partial_heur](img/partial_heuristic.png)
+
+## Todo
+
+- Optimize flow flattening algorithm (Any help is welcomed)
+- Instruction Overlapping heuristic

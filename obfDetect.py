@@ -5,13 +5,12 @@ import idautils
 import ida_kernwin
 
 from obfDetect import detect
+from obfDetect.obfuscation_detection import MAX_FUNCTIONS
 
 PLUGIN_VERSION = "1.0"
 IDAVERISONS = "IDA PRO 7.4+"
 AUTHORS = "mcdulltii"
 DATE = "2021"
-
-MAX_FUNCTIONS = 50
 
 def banner():
     banner_options = (PLUGIN_VERSION, AUTHORS, DATE, IDAVERISONS)
@@ -28,7 +27,7 @@ class ObfDetectHandler(action_handler_t):
 
     # Run script when invoked.
     def activate(self, ctx):
-        if sum([1 for i in idautils.Functions()]) > MAX_FUNCTIONS:
+        if sum([1 for _ in idautils.Functions()]) > MAX_FUNCTIONS:
             detect.partial_heur()
         else:
             detect.all_heur()

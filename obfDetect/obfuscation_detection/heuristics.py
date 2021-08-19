@@ -30,7 +30,10 @@ def find_flattened_functions():
         func_list = filtered_functions
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
-        print(f"Function {func_addr} ({func_name}) has a flattening score of {func_list[func_addr]}.")
+        if func_list[func_addr] != -1:
+            print(f"Function {func_addr} ({func_name}) has a flattening score of {func_list[func_addr]}.")
+        else:
+            print(f"Function {func_addr} ({func_name}) skipped.")
 
 
 def find_complex_functions(partial=True):
@@ -41,7 +44,7 @@ def find_complex_functions(partial=True):
     sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1]))
 
     # bound to print only the top 10%
-    bound = ceil(((sum([1 for i in Functions()]) * 10) / 100))
+    bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
     func_list = list(reversed(sorted_functions.keys()))[:bound] if partial else list(reversed(sorted_functions.keys()))
@@ -58,7 +61,7 @@ def find_large_basic_blocks(partial=True):
     sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1]))
 
     # bound to print only the top 10%
-    bound = ceil(((sum([1 for i in Functions()]) * 10) / 100))
+    bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
     func_list = list(reversed(sorted_functions.keys()))[:bound] if partial else list(reversed(sorted_functions.keys()))

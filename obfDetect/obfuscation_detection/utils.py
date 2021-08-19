@@ -2,9 +2,16 @@ from idaapi import *
 from idc import *
 from idautils import *
 
+from . import MAX_NODES
+
 def calc_flattening_score(address):
     score = 0.0
     func_flowchart = FlowChart(get_func(address))
+    # number of basic blocks
+    num_nodes = sum([1 for _ in func_flowchart])
+    # Filter out large functions
+    if num_nodes > MAX_NODES:
+        return -1
     
     # method to recursively browse the elements
     def get_children(parent, node):
@@ -51,7 +58,7 @@ def calc_flattening_score(address):
 def calc_cyclomatic_complexity(address):
     func_flowchart = FlowChart(get_func(address))
     # number of basic blocks
-    num_nodes = sum([1 for block in func_flowchart])
+    num_nodes = sum([1 for _ in func_flowchart])
     # number of edges in the graph
     num_edges = sum([sum([1 for i in block.succs()]) for block in func_flowchart])
     return num_edges - num_nodes + 2
@@ -60,7 +67,7 @@ def calc_cyclomatic_complexity(address):
 def calc_average_instructions_per_block(address):
     func_flowchart = FlowChart(get_func(address))
     # number of basic blocks
-    num_blocks = sum([1 for block in func_flowchart])
+    num_blocks = sum([1 for _ in func_flowchart])
     # number of instructions
-    num_instructions = sum([sum([1 for insn in Heads(block.start_ea, block.end_ea)]) for block in func_flowchart])
+    num_instructions = sum([sum([1 for _ in Heads(block.start_ea, block.end_ea)]) for block in func_flowchart])
     return num_instructions / num_blocks
