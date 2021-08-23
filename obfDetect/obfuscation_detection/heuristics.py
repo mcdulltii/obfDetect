@@ -50,7 +50,7 @@ def find_complex_functions(partial=True):
     bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
-    func_list = list(reversed(sorted_functions.keys()))[:bound] if partial else list(reversed(sorted_functions.keys()))
+    func_list = list(sorted_functions.keys())[::-1][:bound] if partial else list(sorted_functions.keys())[::-1]
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
         print(f"Function {func_addr} ({func_name}) has a cyclomatic complexity of {sorted_functions[func_addr]}.")
@@ -67,7 +67,7 @@ def find_large_basic_blocks(partial=True):
     bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
-    func_list = list(reversed(sorted_functions.keys()))[:bound] if partial else list(reversed(sorted_functions.keys()))
+    func_list = list(sorted_functions.keys())[::-1][:bound] if partial else list(sorted_functions.keys())[::-1]
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
         print(f"Basic blocks in function {func_addr} ({func_name}) contain on average {ceil(sorted_functions[func_addr])} instructions.")
