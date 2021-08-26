@@ -77,7 +77,7 @@ def find_instruction_overlapping():
                             seen[targ_address] = 1
                         # seen before and not marked as instruction beginning
                         elif seen[targ_address] == 0:
-                            functions_with_overlapping.add(targ_func.start_ea)
+                            functions_with_overlapping.add(hex(targ_func.start_ea))
                             color_insn(targ_address)
 
         # walk over all functions
@@ -96,7 +96,7 @@ def find_instruction_overlapping():
                         seen[address] = 1
                     # seen before and not marked as instruction beginning
                     elif seen[address] == 0:
-                        functions_with_overlapping.add(startea)
+                        functions_with_overlapping.add(hex(startea))
                         color_insn(address)
                     if cycle:
                         # follow jmp and call instructions
@@ -108,7 +108,7 @@ def find_instruction_overlapping():
                             address += 1
                             # if seen before and marked as instruction beginning
                             if address in seen and seen[address] == 1:
-                                functions_with_overlapping.add(startea)
+                                functions_with_overlapping.add(hex(startea))
                                 color_insn(address)
                             else:
                                 seen[address] = 0

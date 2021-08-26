@@ -235,14 +235,16 @@ class obfDetectForm(PluginForm):
                     item_addr = QtWidgets.QTableWidgetItem(func_addr)
                     item_addr.setFlags(QtFlags)
                     self.table.setItem(index, 0, item_addr)
-                    item = QtWidgets.QTableWidgetItem(get_func_name(int(func_addr, 16)))
+                    item = QtWidgets.QTableWidgetItem(get_func_name(self.parse_field(func_addr)))
                     item.setFlags( QtFlags | QtCore.Qt.ItemIsEditable )
                     self.table.setItem(index, 1, item)
                     if funcIndex != 3:
                         heur_score = "Skipped" if heur_list[func_addr] == -1 else str(heur_list[func_addr])
-                        item_score = QtWidgets.QTableWidgetItem(heur_score)
-                        item_score.setFlags(QtFlags)
-                        self.table.setItem(index, 2, item_score)
+                    else:
+                        heur_score = "-"
+                    item_score = QtWidgets.QTableWidgetItem(heur_score)
+                    item_score.setFlags(QtFlags)
+                    self.table.setItem(index, 2, item_score)
         elif funcAddress == None:
             self.currentRowCount = [0, 0]
             # Disable sorting
