@@ -2,7 +2,18 @@ from idaapi import *
 from idc import *
 from idautils import *
 
+from concurrent.futures import ThreadPoolExecutor
+
 from . import MAX_NODES
+
+class CachedThreadPoolExecutor(ThreadPoolExecutor):
+    def __init__(self):
+        super(CachedThreadPoolExecutor, self).__init__(max_workers=1)
+
+    def submit(self, fn, *args, **extra):
+        if self._work_queue.qsize() > 0:
+            self._max_workers +=1
+        return super(CachedThreadPoolExecutor, self).submit(fn, *args, **extra)
 
 def calc_flattening_score(address):
     score = 0.0
@@ -12,13 +23,14 @@ def calc_flattening_score(address):
     # Filter out large functions
     if num_nodes > MAX_NODES:
         return -1
-    
+
     # method to recursively browse the elements
-    def get_children(parent, node):
+    def get_children(parent, node, pool):
         for child in node[parent]:
             yield child
             try:
-                for grandchild in get_children(child, node):
+                submit = pool.submit(get_children(child, node, pool))
+                for grandchild in submit.result():
                     yield grandchild
             except:
                 pass
@@ -33,7 +45,8 @@ def calc_flattening_score(address):
     children = {}
     for p, c in func_vec:
         children.setdefault(p, []).append(c)
-    all_children = {p: list(set([i for i in get_children(p, children) if i != None])) for p in children}
+    pool = CachedThreadPoolExecutor()
+    all_children = {p: list(set([i for i in get_children(p, children, pool) if i != None])) for p in children}
     for element in all_children.keys():
         if element not in all_children[element]:
             all_children[element].append(element)

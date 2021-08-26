@@ -10,6 +10,7 @@ def all_heur():
 
 def partial_heur():
     print('\n')
+    find_flattened_functions()
     find_complex_functions()
     find_large_basic_blocks()
     find_instruction_overlapping()

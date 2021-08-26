@@ -1,5 +1,5 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.3-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.4-E5A505?style=flat-square&color=green)]()
 
 Authored by: **Tim Blazytko**
 
@@ -19,7 +19,7 @@ Implementation is based on IDA 7.4+ (Python3). Check out the following blog post
 
 ## Note:
 
-Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive. As such, the flattening heuristic is omitted when the binary loaded has more than 50 functions. Functions will be skipped if the ctree structure is too large (more than 50 nodes) to prevent crashes.
+Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive, though threading has been implemented.
 
 ```Python
 MAX_FUNCTIONS = 50
@@ -38,7 +38,7 @@ For more details on `partial_heur()` and `all_heur()`:
 
 `all_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of all functions within the binary.
 
-`partial_heur()` calls cyclomatic complexity, basic block size and instruction overlapping heuristic functions on the binary, then prints an output of the heuristics of the top 10% functions within the binary.
+`partial_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of the top 10% (or bounded by `MAX_FUNCTIONS`) functions within the binary.
 
 Instruction overlapping heuristic algorithm makes use of [mcsema disassembly code](https://github.com/lifting-bits/mcsema) to follow jmp and call instructions for better coverage.
 
@@ -70,4 +70,4 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 
 ## Todo
 
-- Optimize flow flattening algorithm (Any help is welcomed)
+- GUI Implementation [branch](https://github.com/mcdulltii/obfDetect/tree/gui)

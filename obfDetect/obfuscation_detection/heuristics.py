@@ -4,7 +4,7 @@ from idautils import *
 
 from math import ceil
 
-from . import MAX_NODES
+from . import MAX_NODES, MAX_FUNCTIONS
 from .utils import *
 from ..mcsema_disass.util import *
 from ..mcsema_disass.flow import get_direct_branch_target
@@ -31,10 +31,12 @@ def find_flattened_functions():
         func_list = func_dict
     else:
         func_list = filtered_functions
+    sorted_functions = dict(sorted(func_list.items(), key=lambda item: item[1], reverse=True))
+    func_list = list(sorted_functions.keys())[:MAX_FUNCTIONS] if len(sorted_functions) > MAX_FUNCTIONS else list(sorted_functions.keys())
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
-        if func_list[func_addr] != -1:
-            print(f"Function {func_addr} ({func_name}) has a flattening score of {func_list[func_addr]}.")
+        if sorted_functions[func_addr] != -1:
+            print(f"Function {func_addr} ({func_name}) has a flattening score of {sorted_functions[func_addr]}.")
         else:
             print(f"Function {func_addr} ({func_name}) skipped.")
 
@@ -44,13 +46,13 @@ def find_complex_functions(partial=True):
     print("Cyclomatic Complexity")
     # sort functions by cyclomatic complexity
     func_dict = create_func_dict(calc_cyclomatic_complexity)
-    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1]))
+    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
 
     # bound to print only the top 10%
     bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
-    func_list = list(sorted_functions.keys())[::-1][:bound] if partial else list(sorted_functions.keys())[::-1]
+    func_list = list(sorted_functions.keys())[:bound] if partial else list(sorted_functions.keys())
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
         print(f"Function {func_addr} ({func_name}) has a cyclomatic complexity of {sorted_functions[func_addr]}.")
@@ -61,13 +63,13 @@ def find_large_basic_blocks(partial=True):
     print("Large Basic Blocks")
     # sort functions by size of blocks
     func_dict = create_func_dict(calc_average_instructions_per_block)
-    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1]))
+    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
 
     # bound to print only the top 10%
     bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
 
     # print top 10% (iterate in descending order)
-    func_list = list(sorted_functions.keys())[::-1][:bound] if partial else list(sorted_functions.keys())[::-1]
+    func_list = list(sorted_functions.keys())[:bound] if partial else list(sorted_functions.keys())
     for func_addr in func_list:
         func_name = get_func_name(int(func_addr, 16))
         print(f"Basic blocks in function {func_addr} ({func_name}) contain on average {ceil(sorted_functions[func_addr])} instructions.")
