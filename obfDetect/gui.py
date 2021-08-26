@@ -1,11 +1,23 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from idaapi import PluginForm, jumpto
-import qasync
-import asyncio
-import re
+from idaapi import PluginForm, jumpto, set_name
+import idaapi
+from idautils import Functions
 
 from .obfuscation_detection.heuristics import *
 from .obfuscation_detection.utils import *
+
+# Handle keyPress events for QTableWidget
+class CustomQTableWidget(QtWidgets.QTableWidget):
+    def __init__(self):
+        QtWidgets.QTableWidget.__init__(self)
+        # Bool if user has edited a cell
+        self.editing = False
+    def event(self, event):
+        if event.type() == QtCore.QEvent.KeyRelease and event.key() == QtCore.Qt.Key_N:
+            # Enable edit if keyPress is 'n'
+            self.editing = True
+            self.edit(self.currentIndex())
+        return QtWidgets.QTableWidget.event(self, event)
 
 class obfDetectForm(PluginForm):
     def OnCreate(self, form):
@@ -20,11 +32,15 @@ class obfDetectForm(PluginForm):
         self.parent.setStyleSheet(''' font-size: 12px; ''')
 
         # Create table
-        self.table = QtWidgets.QTableWidget()
+        self.table = CustomQTableWidget()
         self.table.setEditTriggers(QtWidgets.QTableWidget.NoEditTriggers)
         self.table.doubleClicked.connect(self.goto_address)
-        self.currentRowCount = 0
-        self.table.setRowCount(self.currentRowCount)
+        self.table.itemChanged.connect(self.changed_cell)
+        # Current row count for single function heuristics
+        self.currentRowCount = [0, 0]
+        # Compare with previous heuristic button selection
+        self.previousHeurFunc = None
+        self.table.setRowCount(self.currentRowCount[1])
         self.table.setColumnCount(3)
         self.table.setHorizontalHeaderLabels(["Function Address", "Function Name", "Heuristic"])
         header = self.table.horizontalHeader()
@@ -105,18 +121,17 @@ class obfDetectForm(PluginForm):
         layout.addWidget(self.heuristicGroupBox)
         layout.addWidget(self.numFuncGroupBox)
         layout.addWidget(self.miscGroupBox)
-        # make our created layout the dialogs layout
+        # Set PluginForm layout
         self.parent.setLayout(layout)
 
     def heuristic_selection(self):
+        # Switch case for heuristicButton selection
         self.heurSelection = self.heuristicButtonGroup.checkedButton().text()
-        if self.heurSelection == self.heuristicNames[0]:
-            self.allFuncButton.setEnabled(False)
-            self.singleFuncButton.setChecked(True)
-        else:
-            self.allFuncButton.setEnabled(True)
-            self.singleFuncButton.setChecked(False)
+        if self.previousHeurFunc != None and self.previousHeurFunc != self.heurSelection:
+            self.currentRowCount = [0, 0]
+        self.previousHeurFunc = self.heurSelection
         if self.heurSelection == self.heuristicNames[3]:
+            # Only allow all functions for overlapping heuristic
             self.singleFuncButton.setEnabled(False)
             self.singleFuncText.setEnabled(False)
             self.allFuncButton.setChecked(True)
@@ -129,6 +144,10 @@ class obfDetectForm(PluginForm):
     def numfunc_selection(self):
         # Returns 1 if single function, else 0
         self.numFuncSelection = 1 if self.singleFuncButton.isChecked() else 0
+        if not self.numFuncSelection:
+            self.allFuncButton.setChecked(True)
+        if self.currentRowCount[0] and self.numFuncSelection:
+            self.currentRowCount = [0, 0]
 
     def check_maxNum(self):
         self.maxNum.setEnabled(self.maxCheck.checkState())
@@ -136,11 +155,10 @@ class obfDetectForm(PluginForm):
     @staticmethod
     def parse_field(funcAddress):
         if funcAddress != -1:
+            # Try to parse funcAddress as hex or int value from string
             try:
                 if funcAddress[:2] == '0x' or funcAddress[-1] == 'h':
                     funcAddress = int(funcAddress, 16)
-                # elif re.search('[a-zA-Z]', the_string):
-                    # funcAddress = 
                 else:
                     funcAddress = int(funcAddress)
             except:
@@ -148,16 +166,36 @@ class obfDetectForm(PluginForm):
         return funcAddress
 
     def goto_address(self):
+        # Redirect double-clicked cell function address to CFG
         selected = self.table.currentItem()
-        if selected.column() in [0, 1]:
-            funcAddress = self.parse_field(selected.text())
-            try:
-                jumpto(funcAddress)
-            except:
-                pass
+        try:
+            # Only allow first and second column
+            if selected.column() == 0:
+                funcAddress = self.parse_field(selected.text())
+            elif selected.column() == 1:
+                funcAddress = self.parse_field(self.table.itemAt(selected.row(), 0).text())
+            # Jump to selected function address
+            jumpto(funcAddress)
+        except:
+            pass
+
+    def changed_cell(self, item):
+        # Handle modified cell
+        func_name = item.text()
+        try:
+            func_addr = int(self.table.itemAt(item.row(), 0).text(), 16)
+            # Check modified function is valid and different
+            if get_func_name(func_addr) != func_name and len(func_name) > 0 and self.table.editing:
+                # Rename function at function address
+                set_name(func_addr, func_name, idaapi.SN_FORCE)
+                # Toggle bool to disable function renaming
+                self.table.editing = False
+        except:
+            pass
 
     def run_heur(self):
-        self.table.setRowCount(0)
+        if not self.currentRowCount[0]:
+            self.table.setRowCount(0)
         heuristicFunctions = [find_flattened_functions, \
                               find_complex_functions, \
                               find_large_basic_blocks, \
@@ -166,38 +204,78 @@ class obfDetectForm(PluginForm):
                               calc_cyclomatic_complexity, \
                               calc_average_instructions_per_block]
         heuristicFunctionOffset = 4
+        # Check if single function has been selected
         funcAddress = self.singleFuncText.toPlainText() if self.numFuncSelection else -1
+        # Function address only in hex or int string
         funcAddress = self.parse_field(funcAddress)
+
+        # Verify funcAddress in IDA's listed functions
+        if funcAddress not in Functions() and funcAddress != -1:
+            funcAddress = None
+
+        # Index of heuristic function
         funcIndex = self.heuristicNames.index(self.heurSelection)
+        QtFlags = QtCore.Qt.ItemIsSelectable | QtCore.Qt.ItemIsEnabled
         if funcAddress == -1:
+            self.currentRowCount = [0, 0]
+            # Disable sorting
+            self.table.setSortingEnabled(False)
+            # If all function selected
             heur_list = heuristicFunctions[funcIndex]()
             if len(heur_list) == 0:
+                # If no result found from heuristic function
                 self.table.setRowCount(1)
                 self.table.setItem(0, 0, QtWidgets.QTableWidgetItem("None found"))
                 self.table.setItem(0, 1, QtWidgets.QTableWidgetItem("None found"))
                 self.table.setItem(0, 2, QtWidgets.QTableWidgetItem("None found"))
             else:
+                # If result found from heuristic function
                 self.table.setRowCount(len(heur_list))
                 for index, func_addr in enumerate(heur_list):
-                    self.table.setItem(index, 0, QtWidgets.QTableWidgetItem(func_addr))
-                    self.table.setItem(index, 1, QtWidgets.QTableWidgetItem(get_func_name(int(func_addr, 16))))
+                    item_addr = QtWidgets.QTableWidgetItem(func_addr)
+                    item_addr.setFlags(QtFlags)
+                    self.table.setItem(index, 0, item_addr)
+                    item = QtWidgets.QTableWidgetItem(get_func_name(int(func_addr, 16)))
+                    item.setFlags( QtFlags | QtCore.Qt.ItemIsEditable )
+                    self.table.setItem(index, 1, item)
                     if funcIndex != 3:
                         heur_score = "Skipped" if heur_list[func_addr] == -1 else str(heur_list[func_addr])
-                        self.table.setItem(index, 2, QtWidgets.QTableWidgetItem(heur_score))
+                        item_score = QtWidgets.QTableWidgetItem(heur_score)
+                        item_score.setFlags(QtFlags)
+                        self.table.setItem(index, 2, item_score)
         elif funcAddress == None:
+            self.currentRowCount = [0, 0]
+            # Disable sorting
+            self.table.setSortingEnabled(False)
+            # If function address parsed wrongly
             self.table.setRowCount(1)
             self.table.setItem(0, 0, QtWidgets.QTableWidgetItem("Error"))
             self.table.setItem(0, 1, QtWidgets.QTableWidgetItem("Error"))
             self.table.setItem(0, 2, QtWidgets.QTableWidgetItem("Error"))
         else:
-            savedCount = self.currentRowCount
-            self.currentRowCount += 1
-            self.table.setRowCount(self.currentRowCount)
-            heur_score = heuristicFunctions[funcIndex + heuristicFunctionOffset](funcAddress)
-            heur_score = "Skipped" if heur_score == -1 else str(heur_score)
-            self.table.setItem(savedCount, 0, QtWidgets.QTableWidgetItem(funcAddress))
-            self.table.setItem(savedCount, 1, QtWidgets.QTableWidgetItem(get_func_name(int(funcAddress, 16))))
-            self.table.setItem(savedCount, 2, QtWidgets.QTableWidgetItem(heur_score))
+            # If single function selected
+            savedCount = self.currentRowCount[1]
+            if not self.table.findItems(hex(funcAddress), QtCore.Qt.MatchFixedString | QtCore.Qt.MatchCaseSensitive):
+                # Only insert new data (prevent duplicates)
+                if not self.currentRowCount[0]:
+                    self.table.setRowCount(savedCount + 1)
+                else:
+                    self.table.insertRow(savedCount)
+                # Enable sorting
+                self.table.setSortingEnabled(True)
+                self.currentRowCount[0] = 1
+                self.currentRowCount[1] += 1
+                heur_score = heuristicFunctions[funcIndex + heuristicFunctionOffset](funcAddress)
+                heur_score = "Skipped" if heur_score == -1 else str(heur_score)
+                item_addr = QtWidgets.QTableWidgetItem(hex(funcAddress))
+                item_addr.setFlags(QtFlags)
+                self.table.setItem(savedCount, 0, item_addr)
+                item = QtWidgets.QTableWidgetItem(get_func_name(funcAddress))
+                item.setFlags( QtFlags | QtCore.Qt.ItemIsEditable)
+                self.table.setItem(savedCount, 1, item)
+                item_score = QtWidgets.QTableWidgetItem(heur_score)
+                item_score.setFlags(QtFlags)
+                self.table.setItem(savedCount, 2, item_score)
 
     def export(self):
         pass
@@ -218,7 +296,3 @@ def show_gui():
 
     # Show UI
     window.Show("Obfuscation Detection")
-
-    # Initialize async
-    loop = qasync.QEventLoop(app)
-    asyncio.set_event_loop(loop)

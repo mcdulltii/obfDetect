@@ -22,8 +22,8 @@ def create_func_dict(detection_function):
 def find_flattened_functions():
     # Filter functions by flattening score
     func_dict = create_func_dict(calc_flattening_score)
-    filtered_functions = dict(filter(lambda score: score >= 0.9, func_dict.values()))
-    return filtered_functions if len(filtered_functions) > 0 else func_dict
+    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
+    return sorted_functions
 
 
 def find_complex_functions():
