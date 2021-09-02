@@ -42,14 +42,12 @@ def find_instruction_overlapping():
     # Highlight color
     def color_insn(ea, color = 0xFFFF00):
         current_color = get_item_color(ea)
-        if current_color == color:
-            set_item_color(ea, DEFCOLOR)
-        elif current_color == DEFCOLOR:
+        if current_color == DEFCOLOR:
             set_item_color(ea, color)
 
     # set of addresses
     seen = {}
-    functions_with_overlapping = set()
+    functions_with_overlapping = {}
 
     def walk_functions(cycle = False):
         nonlocal seen
@@ -75,7 +73,7 @@ def find_instruction_overlapping():
                             seen[targ_address] = 1
                         # seen before and not marked as instruction beginning
                         elif seen[targ_address] == 0:
-                            functions_with_overlapping.add(hex(targ_func.start_ea))
+                            functions_with_overlapping[hex(targ_func.start_ea)] = hex(targ_address)
                             color_insn(targ_address)
 
         # walk over all functions
@@ -83,18 +81,18 @@ def find_instruction_overlapping():
             # Skip function if current function is too large
             func_length = sum([1 for _ in FlowChart(get_func(ea))])
             if func_length > gui.MAX_NODES:
-                continue
+                if hex(startea) not in functions_with_overlapping.keys():
+                    functions_with_overlapping[hex(startea)] = hex(-1)
             # walk over all instructions
             for (startea, endea) in Chunks(ea):
                 for address in Heads(startea, endea):
-                    address_bak = address
                     # seen for the first time
                     if address not in seen:
                         # mark as instruction beginning
                         seen[address] = 1
                     # seen before and not marked as instruction beginning
                     elif seen[address] == 0:
-                        functions_with_overlapping.add(hex(startea))
+                        functions_with_overlapping[hex(startea)] = hex(address)
                         color_insn(address)
                     if cycle:
                         # follow jmp and call instructions
@@ -106,7 +104,7 @@ def find_instruction_overlapping():
                             address += 1
                             # if seen before and marked as instruction beginning
                             if address in seen and seen[address] == 1:
-                                functions_with_overlapping.add(hex(startea))
+                                functions_with_overlapping[hex(startea)] = hex(address)
                                 color_insn(address)
                             else:
                                 seen[address] = 0
@@ -114,4 +112,4 @@ def find_instruction_overlapping():
             walk_functions(cycle = False)
 
     walk_functions(cycle = True)
-    return sorted(functions_with_overlapping)
+    return dict(sorted(functions_with_overlapping.items(), key=lambda item: int(item[1], 16), reverse=True))

@@ -252,10 +252,7 @@ class obfDetectForm(PluginForm):
                     item = QtWidgets.QTableWidgetItem(get_func_name(self.parse_field(func_addr)))
                     item.setFlags( QtFlags | QtCore.Qt.ItemIsEditable )
                     self.table.setItem(index, 1, item)
-                    if funcIndex != 3:
-                        heur_score = "Skipped" if heur_list[func_addr] == -1 else str(heur_list[func_addr])
-                    else:
-                        heur_score = "-"
+                    heur_score = "Skipped" if heur_list[func_addr] in [-1, hex(-1)] else str(heur_list[func_addr])
                     item_score = QtWidgets.QTableWidgetItem(heur_score)
                     item_score.setFlags(QtFlags)
                     self.table.setItem(index, 2, item_score)
