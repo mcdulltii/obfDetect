@@ -1,4 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
+import csv
+
 from idaapi import PluginForm, jumpto, set_name
 import idaapi
 from idautils import Functions
@@ -21,6 +23,20 @@ class CustomQTableWidget(QtWidgets.QTableWidget):
             self.editing = True
             self.edit(self.currentIndex())
         return QtWidgets.QTableWidget.event(self, event)
+
+class QLineEditClicked(QtWidgets.QLineEdit):
+    def __init__(self, parent=None):
+        super(QLineEditClicked, self).__init__(parent)
+
+    def mouseReleaseEvent(self, e):
+        old = self.text()
+        new = QtWidgets.QFileDialog.getSaveFileName(
+            self.parent(), "Please select a save filepath", "", "CSV Files (*.csv)"
+        )[0]
+        if new:
+            self.setText(new)
+        else:
+            self.setText(old)
 
 class obfDetectForm(PluginForm):
     def OnCreate(self, form):
@@ -83,6 +99,7 @@ class obfDetectForm(PluginForm):
         self.singleFuncText = QtWidgets.QTextEdit()
         self.singleFuncText.setMaximumHeight(30)
         self.singleFuncText.setAlignment(QtCore.Qt.AlignVCenter)
+        self.singleFuncText.setPlaceholderText("Function Address")
         singleFunc_layout.addWidget(self.singleFuncText)
         numFunc_layout.addLayout(singleFunc_layout)
         self.allFuncButton = QtWidgets.QRadioButton()
@@ -94,32 +111,37 @@ class obfDetectForm(PluginForm):
 
         # Miscellaneous Widgets
         self.miscGroupBox = QtWidgets.QGroupBox("Execution")
+        self.miscGroupBox.setMaximumHeight(150)
         miscFunc_layout = QtWidgets.QGridLayout()
-        maxFunc_layout = QtWidgets.QVBoxLayout()
         self.maxCheck = QtWidgets.QCheckBox()
         self.maxCheck.setText("Max Node per Function")
         self.maxCheck.clicked.connect(self.check_maxNum)
         self.maxCheck.setChecked(False)
-        maxFunc_layout.addWidget(self.maxCheck)
+        miscFunc_layout.addWidget(self.maxCheck, 0, 0, 2, 2)
         self.maxNum = QtWidgets.QSpinBox()
         self.maxNum.setMaximumWidth(200)
         self.maxNum.setMinimum(1)
         self.maxNum.setMaximum(200)
         self.maxNum.setEnabled(False)
-        maxFunc_layout.addWidget(self.maxNum)
-        execFunc_layout = QtWidgets.QVBoxLayout()
+        miscFunc_layout.addWidget(self.maxNum, 1, 0, 2, 2)
         self.runButton = QtWidgets.QPushButton()
         self.runButton.setText("Run")
         self.runButton.clicked.connect(self.run_heur)
-        execFunc_layout.addWidget(self.runButton)
+        miscFunc_layout.addWidget(self.runButton, 0, 2, 2, 1)
+        self.exportFileText = QLineEditClicked()
+        self.exportFileText.setMaximumSize(300, 30)
+        self.exportFileText.setAlignment(QtCore.Qt.AlignVCenter)
+        self.exportFileText.setPlaceholderText("Export Filename")
+        miscFunc_layout.addWidget(self.exportFileText, 1, 1, 2, 1)
         self.exportButton = QtWidgets.QPushButton()
         self.exportButton.setText("Export")
         self.exportButton.clicked.connect(self.export)
-        execFunc_layout.addWidget(self.exportButton)
-        miscFunc_layout.addLayout(maxFunc_layout, 0, 0, 0, 0)
-        miscFunc_layout.addLayout(execFunc_layout, 0, 1, 0, 1)
+        miscFunc_layout.addWidget(self.exportButton, 1, 2, 2, 1)
+        miscFunc_layout.setVerticalSpacing(50)
         self.miscGroupBox.setLayout(miscFunc_layout)
 
+        self.heuristicFunctions[0].setChecked(True)
+        self.heuristic_selection()
         layout.addWidget(self.table)
         layout.addWidget(self.heuristicGroupBox)
         layout.addWidget(self.numFuncGroupBox)
@@ -291,7 +313,37 @@ class obfDetectForm(PluginForm):
                 self.table.setItem(savedCount, 2, item_score)
 
     def export(self):
-        pass
+        # Export table values to csv file format
+        output_filepath = self.exportFileText.text()
+        # Check filepath is valid
+        if len(output_filepath) != 0:
+            try:
+                with open(output_filepath, 'w') as stream:
+                    writer = csv.writer(stream, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+                    # Write table headers
+                    headers = []
+                    for column in range(self.table.columnCount()):
+                        header = self.table.horizontalHeaderItem(column)
+                        if header is not None:
+                            headers.append(header.text())
+                        else:
+                            headers.append("Column " + str(column))
+                    writer.writerow(headers)
+                    # Write table values
+                    for row in range(self.table.rowCount()):
+                        rowdata = []
+                        for column in range(self.table.columnCount()):
+                            item = self.table.item(row, column)
+                            if item is not None:
+                                rowdata.append(item.text())
+                            else:
+                                rowdata.append('')
+                        writer.writerow(rowdata)
+                print(f"[obfDetect] Outputted table to {output_filepath}.")
+            except:
+                print(f"[obfDetect] Error writing to {output_filepath}.")
+        else:
+            print(f"[obfDetect] Filepath entered ({output_filepath}) is invalid.")
 
     def OnClose(self, form):
         pass

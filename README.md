@@ -1,5 +1,5 @@
 # Obfuscation Detection GUI
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.4g-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.5g-E5A505?style=flat-square&color=green)]()
 
 Authored by: **mcdulltii**
 
@@ -33,7 +33,10 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 
 ![Heuristic analysis](img/heuristic_gui.png)
 
+- Single function heuristic GUI analysis
+
+![Single heuristic analysis](img/singleheuristic_gui.png)
+
 ## Todo
 
-- Execution customizations
-- QTableWidget item export
+- QTableWidget selected item export

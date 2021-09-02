@@ -83,6 +83,7 @@ def find_instruction_overlapping():
             if func_length > gui.MAX_NODES:
                 if hex(startea) not in functions_with_overlapping.keys():
                     functions_with_overlapping[hex(startea)] = hex(-1)
+                continue
             # walk over all instructions
             for (startea, endea) in Chunks(ea):
                 for address in Heads(startea, endea):
