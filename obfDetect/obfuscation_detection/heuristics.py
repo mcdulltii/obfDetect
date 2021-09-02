@@ -2,9 +2,7 @@ from idaapi import *
 from idc import *
 from idautils import *
 
-from math import ceil
-
-from . import MAX_NODES
+from .. import gui
 from .utils import *
 from ..mcsema_disass.util import *
 from ..mcsema_disass.flow import get_direct_branch_target
@@ -84,7 +82,7 @@ def find_instruction_overlapping():
         for ea in Functions():
             # Skip function if current function is too large
             func_length = sum([1 for _ in FlowChart(get_func(ea))])
-            if func_length > MAX_NODES:
+            if func_length > gui.MAX_NODES:
                 continue
             # walk over all instructions
             for (startea, endea) in Chunks(ea):

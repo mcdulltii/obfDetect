@@ -3,6 +3,9 @@ from idaapi import PluginForm, jumpto, set_name
 import idaapi
 from idautils import Functions
 
+# INIT variables
+MAX_NODES = 50
+
 from .obfuscation_detection.heuristics import *
 from .obfuscation_detection.utils import *
 
@@ -130,6 +133,10 @@ class obfDetectForm(PluginForm):
         if self.previousHeurFunc != None and self.previousHeurFunc != self.heurSelection:
             self.currentRowCount = [0, 0]
         self.previousHeurFunc = self.heurSelection
+        if self.heurSelection in [self.heuristicNames[0], self.heuristicNames[3]]:
+            self.maxCheck.setEnabled(True)
+        else:
+            self.maxCheck.setEnabled(False)
         if self.heurSelection == self.heuristicNames[3]:
             # Only allow all functions for overlapping heuristic
             self.singleFuncButton.setEnabled(False)
@@ -140,6 +147,7 @@ class obfDetectForm(PluginForm):
             self.singleFuncText.setEnabled(True)
             self.allFuncButton.setChecked(False)
         self.numfunc_selection()
+        self.check_maxNum()
 
     def numfunc_selection(self):
         # Returns 1 if single function, else 0
@@ -194,6 +202,7 @@ class obfDetectForm(PluginForm):
             pass
 
     def run_heur(self):
+        global MAX_NODES
         if not self.currentRowCount[0]:
             self.table.setRowCount(0)
         heuristicFunctions = [find_flattened_functions, \
@@ -220,6 +229,11 @@ class obfDetectForm(PluginForm):
             self.currentRowCount = [0, 0]
             # Disable sorting
             self.table.setSortingEnabled(False)
+            # Check for node limit
+            if self.maxCheck.checkState():
+                maxNumtext = self.parse_field(self.maxNum.text())
+                if maxNumtext != None:
+                    MAX_NODES = maxNumtext
             # If all function selected
             heur_list = heuristicFunctions[funcIndex]()
             if len(heur_list) == 0:

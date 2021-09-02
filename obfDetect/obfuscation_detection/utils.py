@@ -4,7 +4,7 @@ from idautils import *
 
 from concurrent.futures import ThreadPoolExecutor
 
-from . import MAX_NODES
+from .. import gui
 
 class CachedThreadPoolExecutor(ThreadPoolExecutor):
     def __init__(self):
@@ -21,7 +21,7 @@ def calc_flattening_score(address):
     # number of basic blocks
     num_nodes = sum([1 for _ in func_flowchart])
     # Filter out large functions
-    if num_nodes > MAX_NODES:
+    if num_nodes > gui.MAX_NODES:
         return -1
 
     # method to recursively browse the elements
