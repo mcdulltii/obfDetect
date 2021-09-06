@@ -1,4 +1,4 @@
-# Obfuscation Detection
+# Obfuscation Detection (CLI)
 [![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.4-E5A505?style=flat-square&color=green)]()
 
 Authored by: **Tim Blazytko**
@@ -67,7 +67,3 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 - Instruction overlapping heuristic detection
 
 ![instruction overlap](img/insn_overlap.png)
-
-## Todo
-
-- GUI Implementation [branch](https://github.com/mcdulltii/obfDetect/tree/gui)
