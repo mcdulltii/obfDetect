@@ -15,6 +15,15 @@ class CachedThreadPoolExecutor(ThreadPoolExecutor):
             self._max_workers +=1
         return super(CachedThreadPoolExecutor, self).submit(fn, *args, **extra)
 
+class CachedThreadPoolExecutor(ThreadPoolExecutor):
+    def __init__(self):
+        super(CachedThreadPoolExecutor, self).__init__(max_workers=1)
+
+    def submit(self, fn, *args, **extra):
+        if self._work_queue.qsize() > 0:
+            self._max_workers +=1
+        return super(CachedThreadPoolExecutor, self).submit(fn, *args, **extra)
+
 def calc_flattening_score(address):
     score = 0.0
     func_flowchart = FlowChart(get_func(address))
