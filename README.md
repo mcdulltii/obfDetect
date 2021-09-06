@@ -1,9 +1,7 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.4-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.5-E5A505?style=flat-square&color=green)]()
 
-Authored by: **Tim Blazytko**
-
-Adapted by: **mcdulltii**
+Authored by: **mcdulltii**
 
 _Automatically detect obfuscated code and other state machines_
 
@@ -21,28 +19,11 @@ Implementation is based on IDA 7.4+ (Python3). Check out the following blog post
 
 Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive, though threading has been implemented.
 
-```Python
-MAX_FUNCTIONS = 50
-MAX_NODES = 50
-# --- snipped ---
-if sum([1 for _ in idautils.Functions()]) > MAX_FUNCTIONS:
-    detect.partial_heur()
-else:
-    detect.all_heur()
-# --- snipped ---
-if sum([1 for _ in FlowChart(get_func(ea))]) > MAX_NODES:
-    pass
-```
+Using PyQt to visualize the plugin, users are able to further customize the heuristic function analysis on the binary.
 
-For more details on `partial_heur()` and `all_heur()`:
+## Dependencies (Python3)
 
-`all_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of all functions within the binary.
-
-`partial_heur()` calls all heuristic functions on the binary, then prints an output of the heuristics of the top 10% (or bounded by `MAX_FUNCTIONS`) functions within the binary.
-
-Instruction overlapping heuristic algorithm makes use of [mcsema disassembly code](https://github.com/lifting-bits/mcsema) to follow jmp and call instructions for better coverage.
-
-Since the script uses the IDA API, any functions that are missed by IDA will likely not be detected.
+`PyQt5`, and optionally, `qdarkstyle` for the IDA theme.
 
 ## Usage
 
@@ -54,20 +35,18 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 
 ![Toolbar](img/toolbar.png)
 
-## Examples
+- Base GUI selection
 
-- A small binary with 2 scanned functions
+![Base GUI](img/basegui.png)
 
-![all_heur](img/heuristic.png)
+- Heuristic GUI analysis
 
-- Resilience test using a large binary obfuscated using O-LLVM
+![Heuristic analysis](img/heuristic_gui.png)
 
-![partial_heur](img/partial_heuristic.png)
+- Single function heuristic GUI analysis
 
-- Instruction overlapping heuristic detection
-
-![instruction overlap](img/insn_overlap.png)
+![Single heuristic analysis](img/singleheuristic_gui.png)
 
 ## Todo
 
-- GUI Implementation [branch](https://github.com/mcdulltii/obfDetect/tree/gui)
+- QTableWidget selected item export

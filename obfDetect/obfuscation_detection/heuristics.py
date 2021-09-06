@@ -2,9 +2,7 @@ from idaapi import *
 from idc import *
 from idautils import *
 
-from math import ceil
-
-from . import MAX_NODES, MAX_FUNCTIONS
+from .. import gui
 from .utils import *
 from ..mcsema_disass.util import *
 from ..mcsema_disass.flow import get_direct_branch_target
@@ -20,76 +18,36 @@ def create_func_dict(detection_function):
 
 
 def find_flattened_functions():
-    print("=" * 80)
-    print("Control Flow Flattening")
     # Filter functions by flattening score
     func_dict = create_func_dict(calc_flattening_score)
-    filtered_functions = dict(filter(lambda score: score >= 0.9, func_dict.values()))
-    # Print function and score
-    if len(filtered_functions) == 0:
-        print("NOTE: Functions are likely not flattened")
-        func_list = func_dict
-    else:
-        func_list = filtered_functions
-    sorted_functions = dict(sorted(func_list.items(), key=lambda item: item[1], reverse=True))
-    func_list = list(sorted_functions.keys())[:MAX_FUNCTIONS] if len(sorted_functions) > MAX_FUNCTIONS else list(sorted_functions.keys())
-    for func_addr in func_list:
-        func_name = get_func_name(int(func_addr, 16))
-        if sorted_functions[func_addr] != -1:
-            print(f"Function {func_addr} ({func_name}) has a flattening score of {sorted_functions[func_addr]}.")
-        else:
-            print(f"Function {func_addr} ({func_name}) skipped.")
+    sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
+    return sorted_functions
 
 
-def find_complex_functions(partial=True):
-    print("=" * 80)
-    print("Cyclomatic Complexity")
+def find_complex_functions():
     # sort functions by cyclomatic complexity
     func_dict = create_func_dict(calc_cyclomatic_complexity)
     sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
-
-    # bound to print only the top 10%
-    bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
-
-    # print top 10% (iterate in descending order)
-    func_list = list(sorted_functions.keys())[:bound] if partial else list(sorted_functions.keys())
-    for func_addr in func_list:
-        func_name = get_func_name(int(func_addr, 16))
-        print(f"Function {func_addr} ({func_name}) has a cyclomatic complexity of {sorted_functions[func_addr]}.")
+    return sorted_functions
 
 
-def find_large_basic_blocks(partial=True):
-    print("=" * 80)
-    print("Large Basic Blocks")
+def find_large_basic_blocks():
     # sort functions by size of blocks
     func_dict = create_func_dict(calc_average_instructions_per_block)
     sorted_functions = dict(sorted(func_dict.items(), key=lambda item: item[1], reverse=True))
-
-    # bound to print only the top 10%
-    bound = ceil(((sum([1 for _ in Functions()]) * 10) / 100))
-
-    # print top 10% (iterate in descending order)
-    func_list = list(sorted_functions.keys())[:bound] if partial else list(sorted_functions.keys())
-    for func_addr in func_list:
-        func_name = get_func_name(int(func_addr, 16))
-        print(f"Basic blocks in function {func_addr} ({func_name}) contain on average {ceil(sorted_functions[func_addr])} instructions.")
+    return sorted_functions
 
 
 def find_instruction_overlapping():
-    print("=" * 80)
-    print("Instruction Overlapping")
-
     # Highlight color
     def color_insn(ea, color = 0xFFFF00):
         current_color = get_item_color(ea)
-        if current_color == color:
-            set_item_color(ea, DEFCOLOR)
-        elif current_color == DEFCOLOR:
+        if current_color == DEFCOLOR:
             set_item_color(ea, color)
 
     # set of addresses
     seen = {}
-    functions_with_overlapping = set()
+    functions_with_overlapping = {}
 
     def walk_functions(cycle = False):
         nonlocal seen
@@ -115,26 +73,27 @@ def find_instruction_overlapping():
                             seen[targ_address] = 1
                         # seen before and not marked as instruction beginning
                         elif seen[targ_address] == 0:
-                            functions_with_overlapping.add(targ_func.start_ea)
+                            functions_with_overlapping[hex(targ_func.start_ea)] = hex(targ_address)
                             color_insn(targ_address)
 
         # walk over all functions
         for ea in Functions():
             # Skip function if current function is too large
             func_length = sum([1 for _ in FlowChart(get_func(ea))])
-            if func_length > MAX_NODES:
+            if func_length > gui.MAX_NODES:
+                if hex(startea) not in functions_with_overlapping.keys():
+                    functions_with_overlapping[hex(startea)] = hex(-1)
                 continue
             # walk over all instructions
             for (startea, endea) in Chunks(ea):
                 for address in Heads(startea, endea):
-                    address_bak = address
                     # seen for the first time
                     if address not in seen:
                         # mark as instruction beginning
                         seen[address] = 1
                     # seen before and not marked as instruction beginning
                     elif seen[address] == 0:
-                        functions_with_overlapping.add(startea)
+                        functions_with_overlapping[hex(startea)] = hex(address)
                         color_insn(address)
                     if cycle:
                         # follow jmp and call instructions
@@ -146,7 +105,7 @@ def find_instruction_overlapping():
                             address += 1
                             # if seen before and marked as instruction beginning
                             if address in seen and seen[address] == 1:
-                                functions_with_overlapping.add(startea)
+                                functions_with_overlapping[hex(startea)] = hex(address)
                                 color_insn(address)
                             else:
                                 seen[address] = 0
@@ -154,8 +113,4 @@ def find_instruction_overlapping():
             walk_functions(cycle = False)
 
     walk_functions(cycle = True)
-    if len(functions_with_overlapping) > 0:
-        for address in sorted(functions_with_overlapping):
-            print(f"Overlapping instructions in function {hex(address)} ({get_func_name(address)}).")
-    else:
-        print("No overlapping instructions found in binary.")
+    return dict(sorted(functions_with_overlapping.items(), key=lambda item: int(item[1], 16), reverse=True))

@@ -4,8 +4,7 @@ from idaapi import *
 import idautils
 import ida_kernwin
 
-from obfDetect import detect
-from obfDetect.obfuscation_detection import MAX_FUNCTIONS
+from obfDetect import gui
 
 PLUGIN_VERSION = "1.0"
 IDAVERISONS = "IDA PRO 7.4+"
@@ -27,10 +26,7 @@ class ObfDetectHandler(action_handler_t):
 
     # Run script when invoked.
     def activate(self, ctx):
-        if sum([1 for _ in idautils.Functions()]) > MAX_FUNCTIONS:
-            detect.partial_heur()
-        else:
-            detect.all_heur()
+        gui.show_gui()
 
     def update(self, ctx):
         return AST_ENABLE_ALWAYS
