@@ -43,7 +43,13 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 
 ## Usage
 
+1. Select Heuristic function
+2. Select number/address of binary function to run heuristic function on
+3. (Optional) Filter out binary functions with a maximum node size
+4. Click `Run` button to start analysis
+5. (Optional) Click on `Export filename` input box to select export location, and click `Export` button to export table to `csv` format
 
+## Screenshots
 
 - Base GUI selection
 
