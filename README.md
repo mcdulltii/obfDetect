@@ -23,9 +23,9 @@ Using PyQt to visualize the plugin, users are able to further customize the heur
 
 ## Dependencies (Python3)
 
-`PyQt5`, and optionally, `qdarkstyle` for the IDA theme.
+`PyQt5`
 
-## Usage
+## Installation
 
 Copy the `obfDetect` directory and `obfDetect.py` into the IDA Plugins directory.
 
@@ -34,6 +34,16 @@ When IDA has successfully finished loading a binary, the script will print out i
 The script can be run via the `File` toolbar as shown below. Alternatively, `Ctrl-Shift-H`.
 
 ![Toolbar](img/toolbar.png)
+
+## Features
+
+- Function names in output table can be renamed using `n`, and will thus update IDA's function names specified by its function address
+
+- Export filename input box when clicked, will open a file selection pop-up which can be navigated into a custom save location
+
+## Usage
+
+
 
 - Base GUI selection
 

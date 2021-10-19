@@ -352,12 +352,5 @@ def show_gui():
     app = QtWidgets.QApplication.instance()
     window = obfDetectForm() # Initialize UI
 
-    # Add stylesheet
-    try:
-        import qdarkstyle
-        app.setStyleSheet(qdarkstyle.load_stylesheet_pyqt5())
-    except ModuleNotFoundError:
-        pass
-
     # Show UI
     window.Show("Obfuscation Detection")
