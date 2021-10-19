@@ -17,6 +17,8 @@ Implementation is based on IDA 7.4+ (Python3). Check out the following blog post
 
 ## Note:
 
+Heuristic values are generated based on the above blog posts, and are sorted (when run in `All Functions` mode) top down based on their heuristic complexities.
+
 Due to the recursive nature of plotting a dominator tree of every found function within the binary, the implementation and runtime overhead is expensive, though threading has been implemented.
 
 Using PyQt to visualize the plugin, users are able to further customize the heuristic function analysis on the binary.
@@ -45,9 +47,9 @@ The script can be run via the `File` toolbar as shown below. Alternatively, `Ctr
 
 1. Select Heuristic function
 2. Select number/address of binary function to run heuristic function on
-3. (Optional) Filter out binary functions with a maximum node size
+3. *(Optional)* Filter out binary functions with a maximum node size
 4. Click `Run` button to start analysis
-5. (Optional) Click on `Export filename` input box to select export location, and click `Export` button to export table to `csv` format
+5. *(Optional)* Click on `Export filename` input box to select export location, and click `Export` button to export table to `csv` format
 
 ## Screenshots
 
