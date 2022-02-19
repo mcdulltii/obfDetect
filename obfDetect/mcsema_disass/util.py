@@ -35,9 +35,9 @@ _NORETURN_EXTERNAL_FUNC = {}
 
 FUNC_LSDA_ENTRIES = collections.defaultdict()
 
-IS_ARM = "ARM" in _INFO.procName
+IS_ARM = "ARM" in _INFO.procname
 
-IS_SPARC = "sparc" in _INFO.procName
+IS_SPARC = "sparc" in _INFO.procname
 
 # True if we are running on an ELF file.
 IS_ELF = (idaapi.f_ELF == _INFO.filetype) or \

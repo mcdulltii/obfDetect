@@ -6,8 +6,8 @@ import ida_kernwin
 
 from obfDetect import gui
 
-PLUGIN_VERSION = "1.6"
-IDAVERISONS = "IDA PRO 7.4+"
+PLUGIN_VERSION = "1.7"
+IDAVERISONS = "IDA PRO 7.7"
 AUTHORS = "mcdulltii"
 DATE = "2022"
 
