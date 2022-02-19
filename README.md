@@ -1,5 +1,5 @@
 # Obfuscation Detection
-[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.5-E5A505?style=flat-square&color=green)]()
+[![](https://img.shields.io/badge/Category-Obfuscation-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Language-Python-E5A505?style=flat-square)]() [![](https://img.shields.io/badge/Version-1.6-E5A505?style=flat-square&color=green)]()
 
 Authored by: **mcdulltii**
 
@@ -31,7 +31,7 @@ Using PyQt to visualize the plugin, users are able to further customize the heur
 
 Copy the `obfDetect` directory and `obfDetect.py` into the IDA Plugins directory.
 
-When IDA has successfully finished loading a binary, the script will print out its banner into the IDC/Python console. If not, the script can be re-loaded using `alt-E` and selecting it within the plugin dropdown.
+When IDA has successfully finished loading a binary, the script will print out its banner into the IDC/Python console. 
 
 The script can be run via the `File` toolbar as shown below. Alternatively, `Ctrl-Shift-H`.
 

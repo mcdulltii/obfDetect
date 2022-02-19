@@ -6,18 +6,16 @@ import ida_kernwin
 
 from obfDetect import gui
 
-PLUGIN_VERSION = "1.5"
+PLUGIN_VERSION = "1.6"
 IDAVERISONS = "IDA PRO 7.4+"
 AUTHORS = "mcdulltii"
-DATE = "2021"
+DATE = "2022"
 
 def banner():
     banner_options = (PLUGIN_VERSION, AUTHORS, DATE, IDAVERISONS)
     banner_titles = "Obfuscation Detection v%s - (c) %s - %s - %s" % banner_options
     # print plugin banner
     print("\n---[" + banner_titles + "]---\n")
-
-banner()
 
 # Obfuscation Detection Handler
 class ObfDetectHandler(action_handler_t):
@@ -32,7 +30,7 @@ class ObfDetectHandler(action_handler_t):
         return AST_ENABLE_ALWAYS
 
 class obfDetect_plugin_t(plugin_t):
-    flags = PLUGIN_FIX
+    flags = PLUGIN_HIDE
     comment = "Calculates binary obfuscation heuristics"
     help = "Obfuscation Detection"
     wanted_name = "Obfuscation Detection"
@@ -82,11 +80,12 @@ class obfDetect_plugin_t(plugin_t):
     def run(self, arg = 0):
         # We need the calls again if we wanna load it via File/Plugins/editor
         msg("Obfuscation Detection loaded.\nUse Alt+E hot key to quick load.\n")
-        hackish = ObfDetectHandler()
-        hackish.activate(self)
+        handler = ObfDetectHandler()
+        handler.activate(self)
 
     def term(self):
         pass
 
 def PLUGIN_ENTRY():
+    banner()
     return obfDetect_plugin_t()
