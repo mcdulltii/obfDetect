@@ -35,9 +35,18 @@ _NORETURN_EXTERNAL_FUNC = {}
 
 FUNC_LSDA_ENTRIES = collections.defaultdict()
 
-IS_ARM = "ARM" in _INFO.procname
+IDA_VERSION = idaapi.IDA_SDK_VERSION
 
-IS_SPARC = "sparc" in _INFO.procname
+# Check for IDA Version number
+if int(IDA_VERSION) >= 770:
+  # procName is deprecated from IDA Version 7.7 onwards
+  IS_ARM = "ARM" in _INFO.procname
+  IS_SPARC = "sparc" in _INFO.procname
+else:
+  # Revert to procName for IDA Version 7.4 to 7.6
+  IS_ARM = "ARM" in _INFO.procName
+  IS_SPARC = "sparc" in _INFO.procName
+
 
 # True if we are running on an ELF file.
 IS_ELF = (idaapi.f_ELF == _INFO.filetype) or \

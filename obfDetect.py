@@ -7,12 +7,12 @@ import ida_kernwin
 from obfDetect import gui
 
 PLUGIN_VERSION = "1.7"
-IDAVERISONS = "IDA PRO 7.7"
+IDAVERSIONS = "IDA PRO 7.4+"
 AUTHORS = "mcdulltii"
 DATE = "2022"
 
 def banner():
-    banner_options = (PLUGIN_VERSION, AUTHORS, DATE, IDAVERISONS)
+    banner_options = (PLUGIN_VERSION, AUTHORS, DATE, IDAVERSIONS)
     banner_titles = "Obfuscation Detection v%s - (c) %s - %s - %s" % banner_options
     # print plugin banner
     print("\n---[" + banner_titles + "]---\n")

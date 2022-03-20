@@ -9,9 +9,7 @@ _Automatically detect obfuscated code and other state machines_
 
 Scripts to automatically detect obfuscated code and state machines in binaries.
 
-<strong>Implementation is based on IDA 7.7 (Python3). For IDA 7.4 - 7.6 (Python3), refer to [ObfDetect Version 1.6](../../tree/v1.6)</strong>
-
-Check out the following blog posts for more information on the Binary Ninja implementation:
+Implementation is based on IDA 7.4+ (Python3). Check out the following blog posts for more information on the Binary Ninja implementation:
 
 * [Automated Detection of Control-flow Flattening](https://synthesis.to/2021/03/03/flattening_detection.html)
 * [Automated Detection of Obfuscated Code](https://synthesis.to/2021/08/10/obfuscation_detection.html)
